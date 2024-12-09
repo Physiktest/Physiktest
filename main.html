@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #nameForm, #quizSection, #resultSection, #adminSection {
+      display: none;
+      padding: 20px;
+    }
+    #nameForm {
+      display: block;
+    }
+    .hidden {
+      display: none;
+    }
+    .question {
+      margin: 15px 0;
+    }
+    .btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    #adminSection {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="nameForm">
+    <h2>Enter Your Name</h2>
+    <input type="text" id="userName" placeholder="Your name" />
+    <button class="btn" onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div id="quizSection">
+    <h2>Quiz</h2>
+    <div id="quizContainer">
+      <!-- Questions will be injected here dynamically -->
+    </div>
+    <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
+  </div>
+
+  <div id="resultSection">
+    <h2>Results</h2>
+    <div id="resultsContainer">
+      <!-- Results will be injected here -->
+    </div>
+  </div>
+
+  <div id="adminSection" class="hidden">
+    <h2>Admin Controls</h2>
+    <button class="btn" onclick="revealResults()">End Test and Reveal Results</button>
+  </div>
+
+  <script>
+    let quizData = [
+      { question: "What is 2 + 2?", options: ["3", "4", "5"], correct: 1 },
+      { question: "Capital of France?", options: ["Berlin", "Madrid", "Paris"], correct: 2 },
+      { question: "Largest planet?", options: ["Earth", "Jupiter", "Mars"], correct: 1 },
+    ];
+    let userAnswers = {};
+    let users = [];
+    let isAdmin = false;
+    let adminRevealed = false;
+
+    function startQuiz() {
+      const userName = document.getElementById("userName").value.trim();
+      if (!userName) {
+        alert("Please enter your name!");
+        return;
+      }
+
+      if (userName === "tilimilitram") {
+        // Admin access
+        isAdmin = true;
+        alert("Welcome, Admin!");
+        document.getElementById("nameForm").style.display = "none";
+        document.getElementById("adminSection").classList.remove("hidden");
+      } else {
+        // Regular user
+        users.push({ name: userName, score: 0 });
+        document.getElementById("nameForm").style.display = "none";
+        loadQuiz();
+      }
+    }
+
+    function loadQuiz() {
+      const quizContainer = document.getElementById("quizContainer");
+      quizContainer.innerHTML = "";
+      quizData.forEach((q, i) => {
+        quizContainer.innerHTML += `
+          <div class="question">
+            <p>${i + 1}. ${q.question}</p>
+            ${q.options
+              .map(
+                (option, index) =>
+                  `<label><input type="radio" name="question${i}" value="${index}"> ${option}</label><br>`
+              )
+              .join("")}
+          </div>
+        `;
+      });
+      document.getElementById("quizSection").style.display = "block";
+    }
+
+    function submitQuiz() {
+      const userName = users[users.length - 1].name;
+      let score = 0;
+
+      quizData.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="question${i}"]:checked`);
+        if (selected && parseInt(selected.value) === q.correct) {
+          score++;
+        }
+      });
+
+      users[users.length - 1].score = score;
+      alert(`${userName}, your answers have been submitted.`);
+      document.getElementById("quizSection").style.display = "none";
+    }
+
+    function revealResults() {
+      if (!isAdmin) {
+        alert("Only the admin can reveal the results!");
+        return;
+      }
+      if (adminRevealed) {
+        alert("Results have already been revealed!");
+        return;
+      }
+
+      adminRevealed = true;
+      const resultsContainer = document.getElementById("resultsContainer");
+      resultsContainer.innerHTML = "";
+
+      users.sort((a, b) => b.score - a.score);
+      users.forEach((user, index) => {
+        const percentage = ((user.score / quizData.length) * 100).toFixed(2);
+        resultsContainer.innerHTML += `
+          <p>${index + 1}. ${user.name} - ${user.score} points (${percentage}%)</p>
+        `;
+      });
+
+      document.getElementById("resultSection").style.display = "block";
+    }
+  </script>
+</body>
+</html>
